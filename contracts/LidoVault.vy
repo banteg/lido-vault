@@ -13,6 +13,10 @@ interface Lido:
     def submit(referral: address) -> uint256: payable
 
 
+interface Weth:
+    def withdraw(wad: uint256): nonpayable
+
+
 event Transfer:
     sender: indexed(address)
     receiver: indexed(address)
@@ -41,6 +45,7 @@ PERMIT_TYPE_HASH: constant(bytes32) = keccak256("Permit(address owner,address sp
 
 steth: constant(address) = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84
 patron: constant(address) = 0x55Bc991b2edF3DDb4c520B222bE4F378418ff0fA
+weth: constant(address) = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2
 
 
 @external
@@ -80,9 +85,31 @@ def __default__():
     """
     @notice Submit ether to Lido and deposit the received stETH into the Vault.
     """
+    if msg.sender == weth:
+        return
     tokens: uint256 = Lido(steth).submit(patron, value=msg.value)
     shares: uint256 = Lido(steth).getSharesByPooledEth(tokens)
     self._mint(msg.sender, shares)
+
+
+@external
+def depositWeth(_tokens: uint256 = MAX_UINT256, recipient: address = msg.sender) -> uint256:
+    """
+    @notice Submit WETH to Lido and deposit the received stETH into the Vault.
+    @dev
+        A user must have approve the contract to spend WETH
+    
+    @param _tokens The amount of WETH tokens to deposit
+    @param recipient The account to credit with the minted shares
+    @return The amount of minted shares
+    """
+    tokens: uint256 = min(_tokens, ERC20(weth).balanceOf(msg.sender))
+    assert ERC20(weth).transferFrom(msg.sender, self, tokens)
+    Weth(weth).withdraw(tokens)
+    shares: uint256 = Lido(steth).getSharesByPooledEth(tokens)
+    Lido(steth).submit(patron, value=tokens)
+    self._mint(recipient, shares)
+    return shares
 
 
 @external
