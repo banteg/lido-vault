@@ -1,5 +1,5 @@
 # @version 0.2.8
-# @notice Yearn-compatible wrapper for stETH
+# @notice A wrapper for Lido stETH with a Yearn-compatible interface
 # @author banteg
 # @license MIT
 from vyper.interfaces import ERC20
