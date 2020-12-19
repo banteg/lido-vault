@@ -30,3 +30,15 @@ def test_ape_in(vault, lido, ape):
     vault.withdraw()
     assert lido.balanceOf(ape) > 0
     assert vault.balanceOf(ape) == 0
+
+
+def test_weth_in(vault, lido, weth, ape):
+    ape.transfer(weth, "1 ether")
+    weth.approve(vault, "1 ether")
+    vault.depositWeth("1 ether")
+    assert lido.balanceOf(ape) == 0
+    assert vault.balanceOf(ape) > 0
+    lido.pushBeacon(0, "100 ether")
+    vault.withdraw()
+    assert lido.balanceOf(ape) > 0
+    assert vault.balanceOf(ape) == 0
