@@ -7,7 +7,7 @@ from vyper.interfaces import ERC20
 implements: ERC20
 
 
-interface stETH:
+interface Lido:
     def getPooledEthByShares(_sharesAmount: uint256) -> uint256: view
     def getSharesByPooledEth(_pooledEthAmount: uint256) -> uint256: view
     def submit(referral: address) -> uint256: payable
@@ -80,8 +80,8 @@ def __default__():
     """
     @notice Submit ether to Lido and deposit the received stETH into the Vault.
     """
-    tokens: uint256 = stETH(steth).submit(patron, value=msg.value)
-    shares: uint256 = stETH(steth).getSharesByPooledEth(tokens)
+    tokens: uint256 = Lido(steth).submit(patron, value=msg.value)
+    shares: uint256 = Lido(steth).getSharesByPooledEth(tokens)
     self._mint(msg.sender, shares)
 
 
@@ -97,7 +97,7 @@ def deposit(_tokens: uint256 = MAX_UINT256, recipient: address = msg.sender) -> 
     @return The amount of minted shares
     """
     tokens: uint256 = min(_tokens, ERC20(steth).balanceOf(msg.sender))
-    shares: uint256 = stETH(steth).getSharesByPooledEth(tokens)
+    shares: uint256 = Lido(steth).getSharesByPooledEth(tokens)
     self._mint(recipient, shares)
     assert ERC20(steth).transferFrom(msg.sender, self, tokens)
     return shares
@@ -113,7 +113,7 @@ def withdraw(_shares: uint256 = MAX_UINT256, recipient: address = msg.sender) ->
     @return The amount of withdrawn stETH
     """
     shares: uint256 = min(_shares, self.balanceOf[msg.sender])
-    tokens: uint256 = stETH(steth).getPooledEthByShares(shares)
+    tokens: uint256 = Lido(steth).getPooledEthByShares(shares)
     self._burn(msg.sender, shares)
     assert ERC20(steth).transfer(recipient, tokens)
     return tokens
@@ -126,7 +126,7 @@ def pricePerShare() -> uint256:
     @notice Get the vault share to stETH ratio
     @return The value of a single share
     """
-    return stETH(steth).getPooledEthByShares(10 ** self.decimals)
+    return Lido(steth).getPooledEthByShares(10 ** self.decimals)
 
 
 @internal
