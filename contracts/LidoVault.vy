@@ -1,5 +1,5 @@
 # @version 0.2.8
-# @notice A wrapper for Lido stETH with a Yearn-compatible interface
+# @notice A wrapper for Lido stETH which follows Yearn Vault conventions
 # @author banteg
 # @license MIT
 from vyper.interfaces import ERC20
@@ -78,7 +78,7 @@ def _burn(owner: address, amount: uint256):
 @external
 def __default__():
     """
-    @notice Submit ether into stETH and deposit the received tokens into the Vault
+    @notice Submit ether to Lido and deposit the received stETH into the Vault.
     """
     tokens: uint256 = stETH(steth).submit(patron, value=msg.value)
     shares: uint256 = stETH(steth).getSharesByPooledEth(tokens)
@@ -88,7 +88,7 @@ def __default__():
 @external
 def deposit(_tokens: uint256 = MAX_UINT256, recipient: address = msg.sender) -> uint256:
     """
-    @notice Deposit the rebaseable stETH tokens into the Vault
+    @notice Deposit stETH tokens into the Vault
     @dev
         A user must have approved the contract to spend stETH.
 
@@ -106,7 +106,7 @@ def deposit(_tokens: uint256 = MAX_UINT256, recipient: address = msg.sender) -> 
 @external
 def withdraw(_shares: uint256 = MAX_UINT256, recipient: address = msg.sender) -> uint256:
     """
-    @notice Withdraw the rebaseable stETH tokens from the Vault
+    @notice Withdraw stETH tokens from the Vault
 
     @param _shares The amount of shares to burn for stETH
     @param recipient The account to credit with stETH
