@@ -6,6 +6,10 @@ The contract follows Yearn Vault conventions.
 
 ## Interface
 
+The contract implements ERC20, as well as `permit`. It's all standard and not documented here.
+
+Only the non-standard functionality is outlined below.
+
 ### `__default__()`
 A shortcut to submit ether to Lido and deposit the received stETH into the Vault.
 
