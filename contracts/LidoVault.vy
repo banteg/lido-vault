@@ -57,16 +57,29 @@ def _burn(owner: address, amount: uint256):
     log Transfer(owner, ZERO_ADDRESS, amount)
 
 
-@external
 @payable
+@external
 def __default__():
+    """
+    @notice Submit ether into stETH and deposit the received tokens into the Vault
+    """
     tokens: uint256 = stETH(steth).submit(ZERO_ADDRESS, value=msg.value)
     shares: uint256 = stETH(steth).getSharesByPooledEth(tokens)
     self._mint(msg.sender, shares)
 
 
 @external
-def deposit(tokens: uint256 = MAX_UINT256, recipient: address = msg.sender) -> uint256:
+def deposit(_tokens: uint256 = MAX_UINT256, recipient: address = msg.sender) -> uint256:
+    """
+    @notice Deposit the rebaseable stETH tokens into the Vault
+    @dev
+        A user must have approved the contract to spend stETH.
+
+    @param _tokens The amount of stETH tokens to deposit
+    @param recipient The account to credit with the minted shares
+    @return The amount of shares minted
+    """
+    tokens: uint256 = min(_tokens, ERC20(steth).balanceOf(msg.sender))
     shares: uint256 = stETH(steth).getSharesByPooledEth(tokens)
     self._mint(recipient, shares)
     assert ERC20(steth).transferFrom(msg.sender, self, tokens)
@@ -74,7 +87,15 @@ def deposit(tokens: uint256 = MAX_UINT256, recipient: address = msg.sender) -> u
 
 
 @external
-def withdraw(shares: uint256 = MAX_UINT256, recipient: address = msg.sender) -> uint256:
+def withdraw(_shares: uint256 = MAX_UINT256, recipient: address = msg.sender) -> uint256:
+    """
+    @notice Withdraw the rebaseable stETH tokens from the Vault
+
+    @param _shares The amount of shares to burn for stETH
+    @param recipient The account to credit with stETH
+    @return The amount of withdrawn stETH
+    """
+    shares: uint256 = min(_shares, self.balanceOf[msg.sender])
     tokens: uint256 = stETH(steth).getPooledEthByShares(shares)
     self._burn(msg.sender, shares)
     assert ERC20(steth).transfer(recipient, tokens)
@@ -84,6 +105,10 @@ def withdraw(shares: uint256 = MAX_UINT256, recipient: address = msg.sender) -> 
 @view
 @external
 def pricePerShare() -> uint256:
+    """
+    @notice Get the vault share to stETH ratio
+    @return The value of a single share
+    """
     if self.totalSupply == 0:
         return 10 ** self.decimals
     return stETH(steth).getPooledEthByShares(10 ** self.decimals)
@@ -105,7 +130,7 @@ def transfer(receiver: address, amount: uint256) -> bool:
 
 @external
 def transferFrom(sender: address, receiver: address, amount: uint256) -> bool:
-    if (self.allowance[sender][msg.sender] < MAX_UINT256):
+    if self.allowance[sender][msg.sender] != MAX_UINT256:
         self.allowance[sender][msg.sender] -= amount
         log Approval(sender, msg.sender, self.allowance[sender][msg.sender])
     self._transfer(sender, receiver, amount)
