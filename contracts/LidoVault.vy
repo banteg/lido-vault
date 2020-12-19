@@ -25,13 +25,19 @@ event Approval:
     value: uint256
 
 
-name: public(String[64])
-symbol: public(String[32])
+name: public(String[26])
+symbol: public(String[7])
 decimals: public(uint256)
+version: public(String[1])
 
 balanceOf: public(HashMap[address, uint256])
 allowance: public(HashMap[address, HashMap[address, uint256]])
 totalSupply: public(uint256)
+
+nonces: public(HashMap[address, uint256])
+DOMAIN_SEPARATOR: public(bytes32)
+DOMAIN_TYPE_HASH: constant(bytes32) = keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
+PERMIT_TYPE_HASH: constant(bytes32) = keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)")
 
 steth: constant(address) = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84
 patron: constant(address) = 0x55Bc991b2edF3DDb4c520B222bE4F378418ff0fA
@@ -42,6 +48,16 @@ def __init__():
     self.name = 'Yearn Lido St. Ether Vault'
     self.symbol = 'yvstETH'
     self.decimals = 18
+    self.version = '1'
+    self.DOMAIN_SEPARATOR = keccak256(
+        concat(
+            DOMAIN_TYPE_HASH,
+            keccak256(convert(self.name, Bytes[26])),
+            keccak256(convert(self.version, Bytes[1])),
+            convert(chain.id, bytes32),
+            convert(self, bytes32)
+        )
+    )
 
 
 @internal
@@ -78,7 +94,7 @@ def deposit(_tokens: uint256 = MAX_UINT256, recipient: address = msg.sender) -> 
 
     @param _tokens The amount of stETH tokens to deposit
     @param recipient The account to credit with the minted shares
-    @return The amount of shares minted
+    @return The amount of minted shares
     """
     tokens: uint256 = min(_tokens, ERC20(steth).balanceOf(msg.sender))
     shares: uint256 = stETH(steth).getSharesByPooledEth(tokens)
@@ -142,4 +158,36 @@ def transferFrom(sender: address, receiver: address, amount: uint256) -> bool:
 def approve(spender: address, amount: uint256) -> bool:
     self.allowance[msg.sender][spender] = amount
     log Approval(msg.sender, spender, amount)
+    return True
+
+
+@external
+def permit(owner: address, spender: address, amount: uint256, expiry: uint256, signature: Bytes[65]) -> bool:
+    assert owner != ZERO_ADDRESS  # dev: invalid owner
+    assert expiry == 0 or expiry >= block.timestamp  # dev: permit expired
+    nonce: uint256 = self.nonces[owner]
+    digest: bytes32 = keccak256(
+        concat(
+            b'\x19\x01',
+            self.DOMAIN_SEPARATOR,
+            keccak256(
+                concat(
+                    PERMIT_TYPE_HASH,
+                    convert(owner, bytes32),
+                    convert(spender, bytes32),
+                    convert(amount, bytes32),
+                    convert(nonce, bytes32),
+                    convert(expiry, bytes32),
+                )
+            )
+        )
+    )
+    # NOTE: the signature is packed as r, s, v
+    r: uint256 = convert(slice(signature, 0, 32), uint256)
+    s: uint256 = convert(slice(signature, 32, 32), uint256)
+    v: uint256 = convert(slice(signature, 64, 1), uint256)
+    assert ecrecover(digest, v, r, s) == owner  # dev: invalid signature
+    self.allowance[owner][spender] = amount
+    self.nonces[owner] = nonce + 1
+    log Approval(owner, spender, amount)
     return True
