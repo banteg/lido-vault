@@ -34,6 +34,7 @@ allowance: public(HashMap[address, HashMap[address, uint256]])
 totalSupply: public(uint256)
 
 steth: constant(address) = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84
+patron: constant(address) = 0x55Bc991b2edF3DDb4c520B222bE4F378418ff0fA
 
 
 @external
@@ -63,7 +64,7 @@ def __default__():
     """
     @notice Submit ether into stETH and deposit the received tokens into the Vault
     """
-    tokens: uint256 = stETH(steth).submit(ZERO_ADDRESS, value=msg.value)
+    tokens: uint256 = stETH(steth).submit(patron, value=msg.value)
     shares: uint256 = stETH(steth).getSharesByPooledEth(tokens)
     self._mint(msg.sender, shares)
 
