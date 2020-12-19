@@ -126,8 +126,6 @@ def pricePerShare() -> uint256:
     @notice Get the vault share to stETH ratio
     @return The value of a single share
     """
-    if self.totalSupply == 0:
-        return 10 ** self.decimals
     return stETH(steth).getPooledEthByShares(10 ** self.decimals)
 
 
