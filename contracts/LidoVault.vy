@@ -145,7 +145,7 @@ def transfer(receiver: address, amount: uint256) -> bool:
 
 @external
 def transferFrom(sender: address, receiver: address, amount: uint256) -> bool:
-    if self.allowance[sender][msg.sender] != MAX_UINT256:
+    if msg.sender != sender and self.allowance[sender][msg.sender] != MAX_UINT256:
         self.allowance[sender][msg.sender] -= amount
         log Approval(sender, msg.sender, self.allowance[sender][msg.sender])
     self._transfer(sender, receiver, amount)
