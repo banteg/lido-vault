@@ -80,8 +80,7 @@ def __default__():
     """
     @notice Submit ether to Lido and deposit the received stETH into the Vault.
     """
-    tokens: uint256 = Lido(steth).submit(patron, value=msg.value)
-    shares: uint256 = Lido(steth).getSharesByPooledEth(tokens)
+    shares: uint256 = Lido(steth).submit(patron, value=msg.value)
     self._mint(msg.sender, shares)
 
 
