@@ -41,6 +41,12 @@ class Helpers:
       return list(filter(lambda evt: evt.address == addr, events))
 
     @staticmethod
+    def assert_single_event_named(evt_name, tx, evt_keys_dict):
+      receiver_events = Helpers.filter_events_from(tx.receiver, tx.events[evt_name])
+      assert len(receiver_events) == 1
+      assert dict(receiver_events[0]) == evt_keys_dict
+
+    @staticmethod
     def report_beacon_balance_increase(lido):
         beacon_stat = lido.getBeaconStat().dict()
         total_pooled_ether = lido.getTotalPooledEther()
