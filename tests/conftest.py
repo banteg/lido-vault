@@ -12,6 +12,11 @@ def ape(accounts):
     return accounts[0]
 
 
+@pytest.fixture(scope='module')
+def whale(accounts):
+    return accounts[1]
+
+
 @pytest.fixture()
 def vault(LidoVault, ape):
     return LidoVault.deploy({"from": ape})
@@ -31,5 +36,4 @@ def report_beacon_balance_increase():
         total_pooled_ether = lido.getTotalPooledEther()
         new_beacon_balance = Wei(total_pooled_ether * 1.5) + "1 ether"
         lido.pushBeacon(beacon_stat['beaconValidators'], new_beacon_balance)
-        assert lido.getPooledEthByShares("1 ether") != "1 ether"
     return report_beacon_balance_increase_fn
