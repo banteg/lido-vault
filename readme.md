@@ -20,7 +20,7 @@ Parameters:
 - `tokens` The amount of stETH tokens to deposit (default: `balanceOf(msg.sender)`)
 - `recipient` The account to credit with the minted shares (default: `msg.sender`)
 
-Returns: The amount of withdrawn stETH
+Returns: The amount of minted shares
 
 ### `withdraw()`, `withdraw(uint256)`, `withdraw(uint256,address)`
 Withdraw stETH tokens from the Vault.
