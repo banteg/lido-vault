@@ -1,12 +1,6 @@
 import pytest
 
 
-@pytest.fixture(autouse=True)
-def support_submit(accounts, lido,vault):
-    lido.submit(accounts[0], {"from": accounts[0], "amount": "1 ether"})
-    yield
-
-
 @pytest.mark.parametrize("idx", range(5))
 def test_initial_approval_is_zero(vault, accounts, idx):
     assert vault.allowance(accounts[0], accounts[idx]) == 0
