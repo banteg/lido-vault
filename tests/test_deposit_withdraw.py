@@ -1,4 +1,6 @@
 import math
+import brownie
+from brownie import Wei
 
 
 def test_share_price(vault, lido, report_beacon_balance_increase):
@@ -109,3 +111,50 @@ def test_withdraw_diff_rate(vault, lido, ape, report_beacon_balance_increase):
     assert math.fabs(lido.sharesOf(ape) - ape_shares_before) < 10
     assert vault.balanceOf(ape) == 0
     assert vault.totalSupply() == 0
+
+
+def test_deposit_with_insufficient_allowance(vault, lido, ape):
+    lido.submit(ape, {"from": ape, "amount": "1 ether"})
+    ape_shares_before = lido.sharesOf(ape)
+    assert lido.balanceOf(ape) > 0
+
+    lido.approve(vault, Wei(lido.balanceOf(ape) / 2), {"from": ape})
+
+    with brownie.reverts():
+        vault.deposit(lido.balanceOf(ape), {"from": ape})
+
+
+def test_deposit_and_withdraw_two_users(vault, lido, ape, whale, report_beacon_balance_increase):
+    lido.submit(ape, {"from": ape, "amount": "1 ether"})
+    ape_shares_before = lido.sharesOf(ape)
+    ape_steth_before = lido.balanceOf(ape)
+    assert lido.balanceOf(ape) > 0
+
+    lido.submit(whale, {"from": whale, "amount": "10 ether"})
+    whale_shares_before = lido.sharesOf(whale)
+    whale_steth_before = lido.balanceOf(whale)
+    assert lido.balanceOf(whale) > 0
+
+    lido.approve(vault, lido.balanceOf(ape), {"from": ape})
+    vault.deposit({"from": ape})
+
+    lido.approve(vault, lido.balanceOf(whale), {"from": whale})
+    vault.deposit({"from": whale})
+
+    assert vault.totalSupply() == lido.sharesOf(vault)
+    assert vault.totalSupply() == vault.balanceOf(ape) + vault.balanceOf(whale)
+
+    report_beacon_balance_increase(lido)
+    vault.withdraw({"from": ape})
+    vault.withdraw({"from": whale})
+
+    assert vault.balanceOf(ape) == 0
+    assert lido.balanceOf(ape) > ape_steth_before
+    assert abs(lido.sharesOf(ape) - ape_shares_before) <= 1
+
+    assert vault.balanceOf(whale) == 0
+    assert lido.balanceOf(whale) > whale_steth_before
+    assert abs(lido.sharesOf(whale) - whale_shares_before) <= 1
+
+    assert vault.totalSupply() == 0
+    assert lido.sharesOf(vault) <= 2
