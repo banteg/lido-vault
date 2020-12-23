@@ -31,6 +31,10 @@ def lido(interface, accounts):
 
 class Helpers:
     @staticmethod
+    def filter_events_from(addr, events):
+      return list(filter(lambda evt: evt.address == addr, events))
+
+    @staticmethod
     def report_beacon_balance_increase(lido):
         beacon_stat = lido.getBeaconStat().dict()
         total_pooled_ether = lido.getTotalPooledEther()

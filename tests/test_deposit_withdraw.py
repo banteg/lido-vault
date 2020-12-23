@@ -1,5 +1,5 @@
 import brownie
-from brownie import Wei
+from brownie import Wei, ZERO_ADDRESS
 
 
 def test_share_price(vault, lido, helpers):
@@ -158,3 +158,14 @@ def test_deposit_and_withdraw_two_users(vault, lido, ape, whale, helpers):
 
     assert vault.totalSupply() == 0
     assert lido.sharesOf(vault) <= 2
+
+
+def test_withdraw_from_an_empty_wallet(vault, lido, ape, helpers):
+    tx = vault.withdraw({"from": ape})
+    assert vault.balanceOf(ape) == 0
+    assert lido.balanceOf(ape) == 0
+    transfer_evts = tx.events['Transfer']
+    assert len(transfer_evts) >= 1
+    vault_transfer_evts = helpers.filter_events_from(vault, transfer_evts)
+    assert len(vault_transfer_evts) == 1
+    assert dict(vault_transfer_evts[0]) == {"sender": ape, "receiver": ZERO_ADDRESS, "value": 0}
