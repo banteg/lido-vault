@@ -1,10 +1,14 @@
-def test_ape_in(vault, lido, ape):
+def test_ape_in(vault, lido, ape, helpers):
     ape.transfer(vault, "1 ether")
     assert lido.balanceOf(ape) == 0
     assert vault.balanceOf(ape) > 0
-    lido.pushBeacon(0, "100 ether")
+    vault_shares_before_withdraw = lido.sharesOf(vault)
+    assert vault.balanceOf(ape) == vault_shares_before_withdraw
+    helpers.report_beacon_balance_increase(lido)
     vault.withdraw()
     assert lido.balanceOf(ape) > 0
+    assert lido.sharesOf(vault) <= 1 # dust due to rounding error
+    assert lido.sharesOf(ape) + lido.sharesOf(vault) == vault_shares_before_withdraw
     assert vault.balanceOf(ape) == 0
 
 
