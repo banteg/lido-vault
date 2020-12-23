@@ -1,10 +1,12 @@
 import brownie
 import pytest
 
-
-def test_sender_balance_decreases(vault, lido, ape, whale):
+@pytest.fixture(autouse=True)
+def before_each(vault, whale):
     whale.transfer(vault, "10 ether")
 
+
+def test_sender_balance_decreases(vault, lido, ape, whale):
     whale_balance_before = vault.balanceOf(whale)
     amount = "1 ether"
 
@@ -14,7 +16,6 @@ def test_sender_balance_decreases(vault, lido, ape, whale):
 
 
 def test_receiver_balance_increases(vault, lido, ape, whale):
-    whale.transfer(vault, "10 ether")
     amount = "1 ether"
     vault.transfer(ape, "1 ether", {'from': whale})
 
@@ -25,7 +26,6 @@ def test_receiver_balance_increases(vault, lido, ape, whale):
 
 
 def test_total_supply_not_affected(vault, lido, ape, whale):
-    whale.transfer(vault, "10 ether")
     amount = "1 ether"
 
     total_supply = vault.totalSupply()
@@ -35,8 +35,6 @@ def test_total_supply_not_affected(vault, lido, ape, whale):
 
 
 def test_returns_true(vault, lido, ape, whale):
-    whale.transfer(vault, "10 ether")
-
     amount = "1 ether"
     vault.transfer(ape, amount, {'from': whale})
 
@@ -46,14 +44,11 @@ def test_returns_true(vault, lido, ape, whale):
 
 
 def test_insufficient_balance(vault, lido, ape, whale):
-    whale.transfer(vault, "10 ether")
-
     with brownie.reverts():
         vault.transfer(ape, "100 ether", {'from': whale})
 
 
 def test_transfer_full_balance(vault, lido, ape, whale):
-    whale.transfer(vault, "10 ether")
     amount = vault.balanceOf(whale)
     ape_balance = vault.balanceOf(ape)
 
@@ -64,7 +59,6 @@ def test_transfer_full_balance(vault, lido, ape, whale):
 
 
 def test_transfer_zero_vaults(vault, lido, ape, whale):
-    whale.transfer(vault, "10 ether")
     sender_balance = vault.balanceOf(whale)
     receiver_balance = vault.balanceOf(ape)
 
@@ -75,7 +69,6 @@ def test_transfer_zero_vaults(vault, lido, ape, whale):
 
 
 def test_transfer_to_self(vault, lido, ape, whale):
-    whale.transfer(vault, "10 ether")
     sender_balance = vault.balanceOf(whale)
 
     vault.transfer(whale, "1 ether", {'from': whale})
@@ -84,7 +77,6 @@ def test_transfer_to_self(vault, lido, ape, whale):
 
 
 def test_transfer_event_fires(vault, lido, ape, whale):
-    whale.transfer(vault, "10 ether")
     amount = vault.balanceOf(whale)
     tx = vault.transfer(ape, amount, {'from': whale})
 
