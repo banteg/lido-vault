@@ -3,10 +3,10 @@ import brownie
 from brownie import Wei
 
 
-def test_share_price(vault, lido, report_beacon_balance_increase):
+def test_share_price(vault, lido, helpers):
     before = lido.getPooledEthByShares("1 ether")
     assert vault.pricePerShare() == before
-    report_beacon_balance_increase(lido)
+    helpers.report_beacon_balance_increase(lido)
     after = lido.getPooledEthByShares("1 ether")
     assert after > before
     assert vault.pricePerShare() == after
@@ -89,7 +89,7 @@ def test_partial_withdraw_same_rate(vault, lido, ape):
     assert vault.totalSupply() == vault.balanceOf(ape)
 
 
-def test_withdraw_diff_rate(vault, lido, ape, report_beacon_balance_increase):
+def test_withdraw_diff_rate(vault, lido, ape, helpers):
     lido.submit(ape, {"from": ape, "amount": "1 ether"})
     ape_steth_balance_before = lido.balanceOf(ape)
     ape_shares_before = lido.sharesOf(ape)
@@ -103,7 +103,7 @@ def test_withdraw_diff_rate(vault, lido, ape, report_beacon_balance_increase):
     assert vault.totalSupply() == vault.balanceOf(ape)
 
     ape_vault_balance = vault.balanceOf(ape)
-    report_beacon_balance_increase(lido)
+    helpers.report_beacon_balance_increase(lido)
     assert vault.balanceOf(ape) == ape_vault_balance
 
     vault.withdraw({"from": ape})
@@ -124,7 +124,7 @@ def test_deposit_with_insufficient_allowance(vault, lido, ape):
         vault.deposit(lido.balanceOf(ape), {"from": ape})
 
 
-def test_deposit_and_withdraw_two_users(vault, lido, ape, whale, report_beacon_balance_increase):
+def test_deposit_and_withdraw_two_users(vault, lido, ape, whale, helpers):
     lido.submit(ape, {"from": ape, "amount": "1 ether"})
     ape_shares_before = lido.sharesOf(ape)
     ape_steth_before = lido.balanceOf(ape)
@@ -144,7 +144,7 @@ def test_deposit_and_withdraw_two_users(vault, lido, ape, whale, report_beacon_b
     assert vault.totalSupply() == lido.sharesOf(vault)
     assert vault.totalSupply() == vault.balanceOf(ape) + vault.balanceOf(whale)
 
-    report_beacon_balance_increase(lido)
+    helpers.report_beacon_balance_increase(lido)
     vault.withdraw({"from": ape})
     vault.withdraw({"from": whale})
 

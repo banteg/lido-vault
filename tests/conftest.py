@@ -29,11 +29,15 @@ def lido(interface, accounts):
     return interface.Lido(lido, owner=oracle)
 
 
-@pytest.fixture(scope='module')
-def report_beacon_balance_increase():
-    def report_beacon_balance_increase_fn(lido):
+class Helpers:
+    @staticmethod
+    def report_beacon_balance_increase(lido):
         beacon_stat = lido.getBeaconStat().dict()
         total_pooled_ether = lido.getTotalPooledEther()
         new_beacon_balance = Wei(total_pooled_ether * 1.5) + "1 ether"
         lido.pushBeacon(beacon_stat['beaconValidators'], new_beacon_balance)
-    return report_beacon_balance_increase_fn
+
+
+@pytest.fixture(scope='module')
+def helpers():
+    return Helpers
