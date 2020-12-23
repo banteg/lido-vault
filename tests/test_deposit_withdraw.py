@@ -52,6 +52,14 @@ def test_deposit_for(vault, lido, whale, ape):
     assert vault.totalSupply() == vault.balanceOf(ape)
 
 
+def test_deposit_from_a_nocoiner(vault, lido, nocoiner):
+    lido.approve(vault, "1 ether", {"from": nocoiner})
+    vault.deposit("1 ether", {"from": nocoiner})
+    assert vault.balanceOf(nocoiner) == 0
+    assert lido.balanceOf(nocoiner) == 0
+    assert lido.balanceOf(vault) == 0
+
+
 def test_withdraw_same_rate(vault, lido, ape):
     lido.submit(ape, {"from": ape, "amount": "1 ether"})
     ape_steth_balance_before = lido.balanceOf(ape)

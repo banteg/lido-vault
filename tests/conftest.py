@@ -8,6 +8,12 @@ def shared_setup(fn_isolation):
 
 
 @pytest.fixture(scope='module')
+def nocoiner(accounts, lido):
+    assert lido.balanceOf(accounts[9]) == 0
+    return accounts[9]
+
+
+@pytest.fixture(scope='module')
 def ape(accounts):
     return accounts[0]
 
