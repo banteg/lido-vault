@@ -1,4 +1,3 @@
-import math
 import brownie
 from brownie import Wei
 
@@ -108,7 +107,8 @@ def test_withdraw_diff_rate(vault, lido, ape, helpers):
 
     vault.withdraw({"from": ape})
     assert lido.balanceOf(ape) > ape_steth_balance_before
-    assert math.fabs(lido.sharesOf(ape) - ape_shares_before) < 10
+    assert lido.sharesOf(vault) <= 1 # dust due to rounding error
+    assert lido.sharesOf(ape) + lido.sharesOf(vault) == ape_shares_before
     assert vault.balanceOf(ape) == 0
     assert vault.totalSupply() == 0
 
