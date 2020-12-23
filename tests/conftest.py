@@ -1,6 +1,9 @@
 import pytest
 from brownie import Wei
 
+@pytest.fixture(scope="module")
+def token(Token, accounts):
+    return Token.deploy("Test Token", "TST", 18, 1e21, {'from': accounts[0]})
 
 @pytest.fixture(scope="function", autouse=True)
 def shared_setup(fn_isolation):
