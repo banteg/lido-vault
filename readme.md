@@ -4,6 +4,8 @@ A wrapper for Lido stETH which uses underlying shares instead of balances which 
 
 The contract follows Yearn Vault conventions.
 
+Mainnet deployment: [0x15a2B3CfaFd696e1C783FE99eed168b78a3A371e](https://etherscan.io/address/0x15a2b3cfafd696e1c783fe99eed168b78a3a371e)
+
 ## Interface
 
 The contract implements ERC20, as well as `permit`. It's all standard and not documented here.
