@@ -83,3 +83,13 @@ def test_transfer_event_fires(accounts, vault):
 
     assert len(tx.events) == 1
     assert tx.events["Transfer"].values() == [accounts[0], accounts[1], amount]
+
+
+def test_transfer_safety_net_zero_address(accounts, vault):
+    with brownie.reverts():
+        vault.transfer('0x' + '0' * 40, 1, {'from': accounts[0]})
+
+
+def test_transfer_safety_net_self(accounts, vault):
+    with brownie.reverts():
+        vault.transfer(vault, 1, {'from': accounts[0]})
